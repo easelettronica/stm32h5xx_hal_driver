@@ -1395,8 +1395,8 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
   uint32_t pllfracen;
   uint32_t sysclockfreq;
   uint32_t hsivalue;
-  float_t fracn1;
-  float_t pllvco;
+  uint32_t fracn1;
+  uint64_t pllvco;
 
   if (__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_CSI)
   {
@@ -1431,8 +1431,7 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
     pllsource = (RCC->PLL1CFGR & RCC_PLL1CFGR_PLL1SRC);
     pllm = ((RCC->PLL1CFGR & RCC_PLL1CFGR_PLL1M) >> RCC_PLL1CFGR_PLL1M_Pos);
     pllfracen = ((RCC->PLL1CFGR & RCC_PLL1CFGR_PLL1FRACEN) >> RCC_PLL1CFGR_PLL1FRACEN_Pos);
-    fracn1 = (float_t)(uint32_t)(pllfracen * ((RCC->PLL1FRACR & \
-                                               RCC_PLL1FRACR_PLL1FRACN) >> RCC_PLL1FRACR_PLL1FRACN_Pos));
+    fracn1 = pllfracen * ((RCC->PLL1FRACR & RCC_PLL1FRACR_PLL1FRACN) >> RCC_PLL1FRACR_PLL1FRACN_Pos);
 
     if (pllm != 0U)
     {
@@ -1443,32 +1442,28 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
           if (__HAL_RCC_GET_FLAG(RCC_FLAG_HSIDIVF) != 0U)
           {
             hsivalue = (HSI_VALUE >> (__HAL_RCC_GET_HSI_DIVIDER() >> RCC_CR_HSIDIV_Pos));
-            pllvco = ((float_t)hsivalue / (float_t)pllm) * ((float_t)(uint32_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + \
-                                                            (fracn1 / (float_t)0x2000) + (float_t)1);
+            pllvco = ((((uint64_t)hsivalue * 0x2000U) / (uint64_t)pllm) * ((((uint64_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + 1U) * 0x2000U) + fracn1)) / 0x2000U;
           }
           else
           {
-            pllvco = ((float_t)HSI_VALUE / (float_t)pllm) * ((float_t)(uint32_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + \
-                                                             (fracn1 / (float_t)0x2000) + (float_t)1);
+            pllvco = ((((uint64_t)HSI_VALUE * 0x2000U) / (uint64_t)pllm) * ((((uint64_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + 1U) * 0x2000U) + fracn1)) / 0x2000U;
           }
 
           break;
 
         case RCC_PLL1_SOURCE_HSE:  /* HSE used as PLL1 clock source */
-          pllvco = ((float_t)HSE_VALUE / (float_t)pllm) * ((float_t)(uint32_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + \
-                                                           (fracn1 / (float_t)0x2000) + (float_t)1);
+          pllvco = ((((uint64_t)HSE_VALUE * 0x2000U) / (uint64_t)pllm) * ((((uint64_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + 1U) * 0x2000U) + fracn1)) / 0x2000U;
 
           break;
 
         case RCC_PLL1_SOURCE_CSI:  /* CSI used as PLL1 clock source */
         default:
-          pllvco = ((float_t)CSI_VALUE / (float_t)pllm) * ((float_t)(uint32_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + \
-                                                           (fracn1 / (float_t)0x2000) + (float_t)1);
+          pllvco = ((((uint64_t)CSI_VALUE * 0x2000U) / (uint64_t)pllm) * ((((uint64_t)(RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1N) + 1U) * 0x2000U) + fracn1)) / 0x2000U;
           break;
       }
 
       pllp = (((RCC->PLL1DIVR & RCC_PLL1DIVR_PLL1P) >> RCC_PLL1DIVR_PLL1P_Pos) + 1U) ;
-      sysclockfreq = (uint32_t)(float_t)(pllvco / (float_t)pllp);
+      sysclockfreq = (uint32_t)(pllvco / ((uint64_t)pllp * 0x2000U));
     }
     else
     {
@@ -1742,6 +1737,13 @@ __weak void HAL_RCC_CSSCallback(void)
   *         Default state is non-secure and unprivileged access allowed.
   * @note   Secure and non-secure attributes can only be set from the secure
   *         state when the system implements the security (TZEN=1).
+  * @note   As the privileged attributes concern either all secure or all non-secure
+  *         RCC resources accesses and not each RCC individual items access attribute,
+  *         the application must ensure that the privilege access attribute configurations
+  *         are coherent amongst the security level set on RCC individual items
+  *         so not to overwrite a previous more restricted access rule (consider either
+  *         all secure and/or all non-secure RCC resources accesses by privileged-only
+  *         transactions or privileged and unprivileged transactions).
   * @param  Item Item(s) to set attributes on.
   *         This parameter can be a one or a combination of @ref RCC_items (**).
   * @param  Attributes specifies the RCC secure/privilege attributes.

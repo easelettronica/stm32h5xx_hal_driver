@@ -105,7 +105,7 @@ typedef struct
 
   uint32_t *PacketAddress[ETH_TX_DESC_CNT];  /*<! Ethernet packet addresses array */
 
-  uint32_t *CurrentPacketAddress;           /*<! Current transmit NX_PACKET addresses */
+  uint32_t *CurrentPacketAddress;           /*<! Current transmit packet addresses */
 
   uint32_t BuffersInUse;                   /*<! Buffers in Use */
 
@@ -302,10 +302,23 @@ typedef struct
   uint32_t         ExtendedInterPacketGapVal;   /*!< Sets the Extended IPG between Packet during transmission.
                                                            This parameter can be a value from 0x0 to 0xFF */
 
+#if defined(STM32H5E5xx) || defined(STM32H5E4xx) || defined(STM32H5F5xx) || defined(STM32H5F4xx) \
+    || defined(STM32H553xx) || defined(STM32H543xx)
+  FunctionalState  ProgrammableWatchdog;        /*!< Enable or disables the Programmable Watchdog.*/
+
+  uint32_t         WatchdogTimeout;             /*!< This field is used as watchdog timeout for a received packet
+                                                  This parameter can be a value of @ref ETH_Watchdog_Jabber_Timeout */
+  FunctionalState  ProgrammableJabber;          /*!< Enable or disables the Programmable Jabber.*/
+
+  uint32_t         JabberTimeout;               /*!< This field is used as jabber timeout for a transmit packet
+                                                  This parameter can be a value of @ref ETH_Watchdog_Jabber_Timeout */
+#else
   FunctionalState  ProgrammableWatchdog;        /*!< Enable or disables the Programmable Watchdog.*/
 
   uint32_t         WatchdogTimeout;             /*!< This field is used as watchdog timeout for a received packet
                                                         This parameter can be a value of @ref ETH_Watchdog_Timeout */
+#endif /* defined(STM32H5E5xx) || defined(STM32H5E4xx) || defined(STM32H5F5xx) || defined(STM32H5F4xx) ||
+          defined(STM32H553xx) || defined(STM32H543xx) */
 
   uint32_t
   PauseTime;                   /*!< This field holds the value to be used in the Pause Time field in the transmit control packet.
@@ -395,7 +408,7 @@ typedef struct
 typedef enum
 {
   HAL_ETH_MII_MODE             = 0x00U,   /*!<  Media Independent Interface               */
-  HAL_ETH_RMII_MODE            = 0x01U    /*!<   Reduced Media Independent Interface       */
+  HAL_ETH_RMII_MODE            = 0x01U    /*!<   Reduced Media Independent Interface     */
 } ETH_MediaInterfaceTypeDef;
 /**
   *
@@ -459,11 +472,21 @@ typedef struct
   uint32_t                    TimestampMaster;              /*!< Enable Timestamp Snapshot for Event Messages */
   uint32_t                    TimestampSnapshots;           /*!< Select PTP packets for Taking Snapshots */
   uint32_t                    TimestampFilter;              /*!< Enable MAC Address for PTP Packet Filtering */
+#if defined(STM32H563xx) || defined(STM32H573xx)
   uint32_t
   TimestampChecksumCorrection;  /*!< Enable checksum correction during OST for PTP over UDP/IPv4 packets */
+#endif /* defined(STM32H563xx) || defined(STM32H573xx) */
   uint32_t                    TimestampStatusMode;          /*!< Transmit Timestamp Status Mode */
   uint32_t                    TimestampAddend;              /*!< Timestamp addend value */
   uint32_t                    TimestampSubsecondInc;        /*!< Subsecond Increment */
+#if defined(STM32H5E5xx) || defined(STM32H5E4xx) || defined(STM32H5F5xx) || defined(STM32H5F4xx) \
+    || defined(STM32H553xx) || defined(STM32H543xx)
+  uint32_t                    TimestampPCS;                /*!< Enable PCS latencies */
+  uint32_t                    TimestampCapturing;          /*!< Enable Timestamp Capturing in PTP Clock Domain */
+  uint32_t                    TimestampLatencyAccuracy;    /*!< Latency Input Based Timestamp Accuracy Disable */
+  uint32_t                    AV8021ASMEN;                 /*!< Enable AV 802.1AS Mode */
+#endif /* defined(STM32H5E5xx) || defined(STM32H5E4xx) || defined(STM32H5F5xx) || defined(STM32H5F4xx) ||
+          defined(STM32H553xx) || defined(STM32H543xx) */
 
 } ETH_PTP_ConfigTypeDef;
 /**
@@ -1252,22 +1275,22 @@ typedef struct
   * @{
   */
 #define ETH_DMA_RX_NO_ERROR_FLAG                 0x00000000U
-#define ETH_DMA_RX_DESC_READ_ERROR_FLAG          (ETH_DMACSR_REB_BIT_2 | ETH_DMACSR_REB_BIT_1 | ETH_DMACSR_REB_BIT_0)
-#define ETH_DMA_RX_DESC_WRITE_ERROR_FLAG         (ETH_DMACSR_REB_BIT_2 | ETH_DMACSR_REB_BIT_1)
-#define ETH_DMA_RX_BUFFER_READ_ERROR_FLAG        (ETH_DMACSR_REB_BIT_2 | ETH_DMACSR_REB_BIT_0)
-#define ETH_DMA_RX_BUFFER_WRITE_ERROR_FLAG        ETH_DMACSR_REB_BIT_2
+#define ETH_DMA_RX_DESC_READ_ERROR_FLAG          0x00380000U
+#define ETH_DMA_RX_DESC_WRITE_ERROR_FLAG         0x00300000U
+#define ETH_DMA_RX_BUFFER_READ_ERROR_FLAG        0x00280000U
+#define ETH_DMA_RX_BUFFER_WRITE_ERROR_FLAG       0x00200000U
 #define ETH_DMA_TX_NO_ERROR_FLAG                 0x00000000U
-#define ETH_DMA_TX_DESC_READ_ERROR_FLAG          (ETH_DMACSR_TEB_BIT_2 | ETH_DMACSR_TEB_BIT_1 | ETH_DMACSR_TEB_BIT_0)
-#define ETH_DMA_TX_DESC_WRITE_ERROR_FLAG         (ETH_DMACSR_TEB_BIT_2 | ETH_DMACSR_TEB_BIT_1)
-#define ETH_DMA_TX_BUFFER_READ_ERROR_FLAG        (ETH_DMACSR_TEB_BIT_2 | ETH_DMACSR_TEB_BIT_0)
-#define ETH_DMA_TX_BUFFER_WRITE_ERROR_FLAG        ETH_DMACSR_TEB_BIT_2
-#define ETH_DMA_CONTEXT_DESC_ERROR_FLAG           ETH_DMACSR_CDE
-#define ETH_DMA_FATAL_BUS_ERROR_FLAG              ETH_DMACSR_FBE
-#define ETH_DMA_EARLY_TX_IT_FLAG                  ETH_DMACSR_ERI
-#define ETH_DMA_RX_WATCHDOG_TIMEOUT_FLAG          ETH_DMACSR_RWT
-#define ETH_DMA_RX_PROCESS_STOPPED_FLAG           ETH_DMACSR_RPS
-#define ETH_DMA_RX_BUFFER_UNAVAILABLE_FLAG        ETH_DMACSR_RBU
-#define ETH_DMA_TX_PROCESS_STOPPED_FLAG           ETH_DMACSR_TPS
+#define ETH_DMA_TX_DESC_READ_ERROR_FLAG          0x00070000U
+#define ETH_DMA_TX_DESC_WRITE_ERROR_FLAG         0x00060000U
+#define ETH_DMA_TX_BUFFER_READ_ERROR_FLAG        0x00050000U
+#define ETH_DMA_TX_BUFFER_WRITE_ERROR_FLAG       0x00040000U
+#define ETH_DMA_CONTEXT_DESC_ERROR_FLAG          ETH_DMACSR_CDE
+#define ETH_DMA_FATAL_BUS_ERROR_FLAG             ETH_DMACSR_FBE
+#define ETH_DMA_EARLY_TX_IT_FLAG                 ETH_DMACSR_ERI
+#define ETH_DMA_RX_WATCHDOG_TIMEOUT_FLAG         ETH_DMACSR_RWT
+#define ETH_DMA_RX_PROCESS_STOPPED_FLAG          ETH_DMACSR_RPS
+#define ETH_DMA_RX_BUFFER_UNAVAILABLE_FLAG       ETH_DMACSR_RBU
+#define ETH_DMA_TX_PROCESS_STOPPED_FLAG          ETH_DMACSR_TPS
 /**
   * @}
   */
@@ -1313,6 +1336,45 @@ typedef struct
   * @}
   */
 
+#if defined(STM32H5E5xx) || defined(STM32H5E4xx) || defined(STM32H5F5xx) || defined(STM32H5F4xx) \
+    || defined(STM32H553xx) || defined(STM32H543xx)
+/** @defgroup ETH_Watchdog_Jabber_Timeout ETH Watchdog Jabber Timeout
+  * @{
+  */
+#define ETH_JABBERTIMEOUT_2KB        ETH_MACWJBTR_JTO_2KB
+#define ETH_JABBERTIMEOUT_3KB        ETH_MACWJBTR_JTO_3KB
+#define ETH_JABBERTIMEOUT_4KB        ETH_MACWJBTR_JTO_4KB
+#define ETH_JABBERTIMEOUT_5KB        ETH_MACWJBTR_JTO_5KB
+#define ETH_JABBERTIMEOUT_6KB        ETH_MACWJBTR_JTO_6KB
+#define ETH_JABBERTIMEOUT_7KB        ETH_MACWJBTR_JTO_7KB
+#define ETH_JABBERTIMEOUT_8KB        ETH_MACWJBTR_JTO_8KB
+#define ETH_JABBERTIMEOUT_9KB        ETH_MACWJBTR_JTO_9KB
+#define ETH_JABBERTIMEOUT_10KB       ETH_MACWJBTR_JTO_10KB
+#define ETH_JABBERTIMEOUT_11KB       ETH_MACWJBTR_JTO_12KB
+#define ETH_JABBERTIMEOUT_12KB       ETH_MACWJBTR_JTO_12KB
+#define ETH_JABBERTIMEOUT_13KB       ETH_MACWJBTR_JTO_13KB
+#define ETH_JABBERTIMEOUT_14KB       ETH_MACWJBTR_JTO_14KB
+#define ETH_JABBERTIMEOUT_15KB       ETH_MACWJBTR_JTO_15KB
+#define ETH_JABBERTIMEOUT_16KB       ETH_MACWJBTR_JTO_16KB
+#define ETH_WATCHDOGTIMEOUT_2KB      ETH_MACWJBTR_WTO_2KB
+#define ETH_WATCHDOGTIMEOUT_3KB      ETH_MACWJBTR_WTO_3KB
+#define ETH_WATCHDOGTIMEOUT_4KB      ETH_MACWJBTR_WTO_4KB
+#define ETH_WATCHDOGTIMEOUT_5KB      ETH_MACWJBTR_WTO_5KB
+#define ETH_WATCHDOGTIMEOUT_6KB      ETH_MACWJBTR_WTO_6KB
+#define ETH_WATCHDOGTIMEOUT_7KB      ETH_MACWJBTR_WTO_7KB
+#define ETH_WATCHDOGTIMEOUT_8KB      ETH_MACWJBTR_WTO_8KB
+#define ETH_WATCHDOGTIMEOUT_9KB      ETH_MACWJBTR_WTO_9KB
+#define ETH_WATCHDOGTIMEOUT_10KB     ETH_MACWJBTR_WTO_10KB
+#define ETH_WATCHDOGTIMEOUT_11KB     ETH_MACWJBTR_WTO_12KB
+#define ETH_WATCHDOGTIMEOUT_12KB     ETH_MACWJBTR_WTO_12KB
+#define ETH_WATCHDOGTIMEOUT_13KB     ETH_MACWJBTR_WTO_13KB
+#define ETH_WATCHDOGTIMEOUT_14KB     ETH_MACWJBTR_WTO_14KB
+#define ETH_WATCHDOGTIMEOUT_15KB     ETH_MACWJBTR_WTO_15KB
+#define ETH_WATCHDOGTIMEOUT_16KB     ETH_MACWJBTR_WTO_16KB
+/**
+  * @}
+  */
+#else
 /** @defgroup ETH_Watchdog_Timeout ETH Watchdog Timeout
   * @{
   */
@@ -1334,6 +1396,8 @@ typedef struct
 /**
   * @}
   */
+#endif /* defined(STM32H5E5xx) || defined(STM32H5E4xx) || defined(STM32H5F5xx) || defined(STM32H5F4xx) ||
+          defined(STM32H553xx) || defined(STM32H543xx) */
 
 /** @defgroup ETH_Inter_Packet_Gap ETH Inter Packet Gap
   * @{
@@ -1473,8 +1537,8 @@ typedef struct
   */
 #define HAL_ETH_STATE_RESET                0x00000000U    /*!< Peripheral not yet Initialized or disabled */
 #define HAL_ETH_STATE_READY                0x00000010U    /*!< Peripheral Communication started           */
-#define HAL_ETH_STATE_BUSY                 0x00000023U    /*!< an internal process is ongoing             */
-#define HAL_ETH_STATE_STARTED              0x00000023U    /*!< an internal process is started             */
+#define HAL_ETH_STATE_BUSY                 0x00000020U    /*!< an internal process is ongoing             */
+#define HAL_ETH_STATE_STARTED              0x00000040U    /*!< an internal process is started             */
 #define HAL_ETH_STATE_ERROR                0x000000E0U    /*!< Error State                                */
 /**
   * @}
@@ -1798,6 +1862,7 @@ uint32_t             HAL_ETH_GetError(const ETH_HandleTypeDef *heth);
 uint32_t             HAL_ETH_GetDMAError(const ETH_HandleTypeDef *heth);
 uint32_t             HAL_ETH_GetMACError(const ETH_HandleTypeDef *heth);
 uint32_t             HAL_ETH_GetMACWakeUpSource(const ETH_HandleTypeDef *heth);
+uint32_t             HAL_ETH_GetTxBuffersNumber(const ETH_HandleTypeDef *heth);
 /**
   * @}
   */

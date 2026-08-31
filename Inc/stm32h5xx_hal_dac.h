@@ -227,8 +227,11 @@ typedef void (*pDAC_CallbackTypeDef)(DAC_HandleTypeDef *hdac);
 #else
 /* Devices STM32H503xx */
 #define DAC_TRIGGER_T3_TRGO              (                                DAC_CR_TSEL1_1  | DAC_CR_TSEL1_0 | DAC_CR_TEN1) /*!< TIM3 TRGO selected as external conversion trigger for DAC channel */
-
 #endif /* Devices STM32H563/H573xx or STM32H503xx */
+#if defined(PLAY1)
+#define DAC_TRIGGER_PLAY1_OUT11         (DAC_CR_TSEL1_3 | DAC_CR_TSEL1_2 | DAC_CR_TSEL1_1                  | DAC_CR_TEN1) /*!< PLAY OUT11 selected as external conversion trigger for DAC channel */
+#define DAC_TRIGGER_PLAY1_OUT12         (DAC_CR_TSEL1_3 | DAC_CR_TSEL1_2 | DAC_CR_TSEL1_1 | DAC_CR_TSEL1_0 | DAC_CR_TEN1) /*!< PLAY OUT12 selected as external conversion trigger for DAC channel */
+#endif /* Devices STM32H5E5/H5F5xx */
 
 /**
   * @}
@@ -297,10 +300,13 @@ typedef void (*pDAC_CallbackTypeDef)(DAC_HandleTypeDef *hdac);
 /** @defgroup DAC_ConnectOnChipPeripheral DAC ConnectOnChipPeripheral
   * @{
   */
-#define DAC_CHIPCONNECT_EXTERNAL       (1UL << 0)
-#define DAC_CHIPCONNECT_INTERNAL       (1UL << 1)
-#define DAC_CHIPCONNECT_BOTH           (1UL << 2)
-
+#define DAC_CHIPCONNECT_EXTERNAL       (1UL << 0) /*!< DAC channel output is connected to an external pin.*/
+#define DAC_CHIPCONNECT_INTERNAL       (1UL << 1) /*!< DAC channel  output is connected to on-chip peripherals (via
+                                                       internal paths) and to an external pin. */
+#define DAC_CHIPCONNECT_BOTH           (1UL << 2) /*!< DAC channel  output is connected to on-chip peripherals (via
+                                                       internal paths) and to an external pin.
+                                                       Note: this connection is not available in mode normal
+                                                             with buffer disabled. */
 /**
   * @}
   */

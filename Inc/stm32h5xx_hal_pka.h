@@ -26,6 +26,9 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h5xx_hal_def.h"
+#if (defined(RNG_HTSR0_RPERRX) || defined(RNG_HTSR1_ADERRX))
+#include "stm32h5xx_ll_rng.h"
+#endif /* RNG_HTSR0_RPERRX || RNG_HTSR1_ADERRX */
 
 /** @addtogroup STM32H5xx_HAL_Driver
   * @{
@@ -107,6 +110,9 @@ typedef struct
   PKA_TypeDef                   *Instance;              /*!< Register base address */
   __IO HAL_PKA_StateTypeDef     State;                  /*!< PKA state */
   __IO uint32_t                 ErrorCode;              /*!< PKA Error code */
+  __IO uint32_t                 primeordersize;         /*!< Elliptic curve prime order length */
+  __IO uint32_t                 opsize;                 /*!< Modular exponentiation operand length */
+  __IO uint32_t                 modulussize;            /*!< Elliptic curve modulus length */
 #if (USE_HAL_PKA_REGISTER_CALLBACKS == 1)
   void (* OperationCpltCallback)(struct __PKA_HandleTypeDef *hpka); /*!< PKA End of operation callback */
   void (* ErrorCallback)(struct __PKA_HandleTypeDef *hpka);         /*!< PKA Error callback            */

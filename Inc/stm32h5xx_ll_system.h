@@ -57,7 +57,7 @@ extern "C" {
   * @{
   */
 #define LL_SBS_HDPL_INCREMENT_VALUE   0x6AU                               /*!< Define used for the HDPL increment */
-#define LL_SBS_DBG_UNLOCK             (0xB4U << SBS_DBGCR_DBG_UNLOCK_Pos) /*!< Define used to unlock debug */
+#define LL_SBS_DBG_UNLOCK             (0xB4UL << SBS_DBGCR_DBG_UNLOCK_Pos) /*!< Define used to unlock debug */
 #define LL_SBS_ACCESS_PORT_UNLOCK     0xB4U                               /*!< Define used to unlock access port */
 #define LL_SBS_DBG_CONFIG_LOCK        0xC3U                               /*!< Define used to lock debug configuration */
 #define LL_SBS_DBG_CONFIG_UNLOCK      0xB4U                               /*!< Define used to unlock debug configuration */
@@ -189,6 +189,41 @@ extern "C" {
 /**
   * @}
   */
+#if defined(SBS_OTGHSPHYTUNER2_SQRXTUNE)
+/** @defgroup SYSTEM_LL_SBS_OTG_SQUELSH OTG High-speed (HS) PHY Squelch threshold adjustment
+  * @{
+  */
+#define LL_SBS_OTGHSPHY_SQUELCH_15PERCENT  0x00000000U                                                            /*!< +15% (recommended value) */
+#define LL_SBS_OTGHSPHY_SQUELCH_0PERCENT   (SBS_OTGHSPHYTUNER2_SQRXTUNE_0 | SBS_OTGHSPHYTUNER2_SQRXTUNE_1)  /*!< 0% (default value) */
+/**
+  * @}
+  */
+#endif /* SBS_OTGHSPHYTUNER2_SQRXTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_COMPDISTUNE)
+/** @defgroup SYSTEM_LL_SBS_OTG_PHYTUNER_DISCONNECT_THRESTHOLD OTG High-speed (HS) PHYTUNER disconnect threshold
+  * @{
+  */
+#define LL_SBS_OTGHSPHY_DISCONNECT_5_9PERCENT  SBS_OTGHSPHYTUNER2_COMPDISTUNE_1  /*!< +5.9% (recommended value) */
+#define LL_SBS_OTGHSPHY_DISCONNECT_0PERCENT    SBS_OTGHSPHYTUNER2_COMPDISTUNE_0  /*!< 0% (default value) */
+/**
+  * @}
+  */
+#endif /* SBS_OTGHSPHYTUNER2_COMPDISTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE)
+/** @defgroup SYSTEM_LL_SBS_OTG_TRANSMITTER_PREEMPHASIS_CURRENT OTG High-speed (HS) transmitter preemphasis current control
+  * @{
+  */
+#define LL_SBS_OTGHSPHY_PREEMP_DISABLED  0x00000000U                              /*!< HS transmitter preemphasis circuit disabled */
+#define LL_SBS_OTGHSPHY_PREEMP_1X        SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_0     /*!< HS transmitter preemphasis circuit sources 1x preemphasis current */
+#define LL_SBS_OTGHSPHY_PREEMP_2X        SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_1     /*!< HS transmitter preemphasis circuit sources 2x preemphasis current */
+#define LL_SBS_OTGHSPHY_PREEMP_3X       (SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_0 | \
+                                            SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_1) /*!< HS transmitter preemphasis circuit sources 3x preemphasis current */
+/**
+  * @}
+  */
+#endif /* SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE */
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 /** @defgroup SYSTEM_LL_SBS_S_Lock_items SBS Lock items
@@ -213,8 +248,6 @@ extern "C" {
 #define LL_SBS_CLASSB_NSEC              0U                      /*!< Class B configuration secure/non-secure access */
 #define LL_SBS_FPU_SEC                  SBS_SECCFGR_FPUSEC      /*!< FPU configuration secure-only access */
 #define LL_SBS_FPU_NSEC                 0U                      /*!< FPU configuration secure/non-secure access */
-#define LL_SBS_SMPS_SEC                 SBS_SECCFGR_SDCE_SEC_EN /*!< SMPS configuration secure-only access */
-#define LL_SBS_SMPS_NSEC                0U                      /*!< SMPS configuration secure/non-secure access */
 /**
   * @}
   */
@@ -799,7 +832,7 @@ __STATIC_INLINE uint32_t LL_SBS_GetAuthDbgHDPL(void)
 /**
   * @brief  Configure the authenticated debug security access.
   * @rmtoll SBS_DBGCR DBG_AUTH_SEC     LL_SBS_SetAuthDbgSec
-  * @param  Control debug opening secure/non-secure or non-secure only
+  * @param  Security debug opening secure/non-secure or non-secure only
   *         This parameter can be one of the following values:
   *            @arg LL_SBS_DEBUG_SEC_NSEC: debug opening for secure and non-secure.
   *            @arg LL_SBS_DEBUG_NSEC: debug opening for non-secure only.
@@ -822,7 +855,6 @@ __STATIC_INLINE uint32_t LL_SBS_GetAuthDbgSec(void)
 {
   return ((SBS->DBGCR & SBS_DBGCR_DBG_AUTH_SEC) >> SBS_DBGCR_DBG_AUTH_SEC_Pos);
 }
-
 #endif /* SBS_DBGCR_DBG_AUTH_SEC */
 
 /**
@@ -976,7 +1008,6 @@ __STATIC_INLINE uint32_t LL_SBS_GetSecureLock(void)
   */
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
-
 /**
   * @brief  Configure Secure mode
   * @note Only available from secure state when system implements security (TZEN=1)
@@ -1010,7 +1041,6 @@ __STATIC_INLINE uint32_t LL_SBS_GetConfigSecure(void)
 {
   return (uint32_t)(READ_BIT(SBS->SECCFGR, LL_SBS_CLOCK_SEC | LL_SBS_CLASSB_SEC | LL_SBS_FPU_SEC));
 }
-
 #endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
 
 /**
@@ -1027,7 +1057,7 @@ __STATIC_INLINE uint32_t LL_SBS_GetConfigSecure(void)
 
 /**
   * @brief  Get the compensation cell value of the GPIO PMOS transistor supplied by VDD
-  * @rmtoll CCVALR    PCV1   LL_SBS_GetPMOSVddCompensationValue
+  * @rmtoll CCVALR    APSRC1   LL_SBS_GetPMOSVddCompensationValue
   * @retval Returned value is the PMOS compensation cell
   */
 __STATIC_INLINE uint32_t LL_SBS_GetPMOSVddCompensationValue(void)
@@ -1037,7 +1067,7 @@ __STATIC_INLINE uint32_t LL_SBS_GetPMOSVddCompensationValue(void)
 
 /**
   * @brief  Get the compensation cell value of the GPIO NMOS transistor supplied by VDD
-  * @rmtoll CCVALR    NCV1   LL_SBS_GetNMOSVddCompensationValue
+  * @rmtoll CCVALR    ANSRC1   LL_SBS_GetNMOSVddCompensationValue
   * @retval Returned value is the NMOS compensation cell
   */
 __STATIC_INLINE uint32_t LL_SBS_GetNMOSVddCompensationValue(void)
@@ -1047,7 +1077,7 @@ __STATIC_INLINE uint32_t LL_SBS_GetNMOSVddCompensationValue(void)
 
 /**
   * @brief  Get the compensation cell value of the GPIO PMOS transistor supplied by VDDIO2
-  * @rmtoll CCVALR    PCV2   LL_SBS_GetPMOSVddIO2CompensationValue
+  * @rmtoll CCVALR    APSRC2   LL_SBS_GetPMOSVddIO2CompensationValue
   * @retval Returned value is the PMOS compensation cell
   */
 __STATIC_INLINE uint32_t LL_SBS_GetPMOSVddIO2CompensationValue(void)
@@ -1057,7 +1087,7 @@ __STATIC_INLINE uint32_t LL_SBS_GetPMOSVddIO2CompensationValue(void)
 
 /**
   * @brief  Get the compensation cell value of the GPIO NMOS transistor supplied by VDDIO2
-  * @rmtoll CCVALR    NCV2   LL_SBS_GetNMOSVddIO2CompensationValue
+  * @rmtoll CCVALR    ANSRC2   LL_SBS_GetNMOSVddIO2CompensationValue
   * @retval Returned value is the NMOS compensation cell
   */
 __STATIC_INLINE uint32_t LL_SBS_GetNMOSVddIO2CompensationValue(void)
@@ -1067,7 +1097,7 @@ __STATIC_INLINE uint32_t LL_SBS_GetNMOSVddIO2CompensationValue(void)
 
 /**
   * @brief  Set the compensation cell code of the GPIO PMOS transistor supplied by VDD
-  * @rmtoll CCSWCR    PCC1  LL_SBS_SetPMOSVddCompensationCode
+  * @rmtoll CCSWCR    SW_APSRC1  LL_SBS_SetPMOSVddCompensationCode
   * @param  PMOSCode PMOS compensation code
   *         This code is applied to the PMOS compensation cell when the CS1 bit of the
   *         SBS_CCCSR is set
@@ -1080,7 +1110,7 @@ __STATIC_INLINE void LL_SBS_SetPMOSVddCompensationCode(uint32_t PMOSCode)
 
 /**
   * @brief  Get the compensation cell code of the GPIO PMOS transistor supplied by VDD
-  * @rmtoll CCSWCR    PCC1   LL_SBS_GetPMOSVddCompensationCode
+  * @rmtoll CCSWCR    SW_APSRC1   LL_SBS_GetPMOSVddCompensationCode
   * @retval Returned value is the PMOS compensation cell
   */
 __STATIC_INLINE uint32_t LL_SBS_GetPMOSVddCompensationCode(void)
@@ -1090,7 +1120,7 @@ __STATIC_INLINE uint32_t LL_SBS_GetPMOSVddCompensationCode(void)
 
 /**
   * @brief  Set the compensation cell code of the GPIO PMOS transistor supplied by VDDIO
-  * @rmtoll CCSWCR    PCC2  LL_SBS_SetPMOSVddIOCompensationCode
+  * @rmtoll CCSWCR    SW_APSRC2  LL_SBS_SetPMOSVddIOCompensationCode
   * @param  PMOSCode PMOS compensation code
   *         This code is applied to the PMOS compensation cell when the CS2 bit of the
   *         SBS_CCCSR is set
@@ -1101,10 +1131,9 @@ __STATIC_INLINE void LL_SBS_SetPMOSVddIOCompensationCode(uint32_t PMOSCode)
   MODIFY_REG(SBS->CCSWCR, SBS_CCSWCR_SW_APSRC2, PMOSCode << SBS_CCSWCR_SW_APSRC2_Pos);
 }
 
-
 /**
   * @brief  Get the compensation cell code of the GPIO PMOS transistor supplied by VDDIO
-  * @rmtoll CCSWCR    PCC2   LL_SBS_GetPMOSVddIOCompensationCode
+  * @rmtoll CCSWCR    SW_APSRC2   LL_SBS_GetPMOSVddIOCompensationCode
   * @retval Returned value is the PMOS compensation
   */
 __STATIC_INLINE uint32_t LL_SBS_GetPMOSVddIOCompensationCode(void)
@@ -1239,7 +1268,7 @@ __STATIC_INLINE uint32_t LL_SBS_IsActiveFlag_VddCMPCR(void)
 
 /**
   * @brief  Get Compensation Cell ready Flag of GPIO supplied by VDDIO
-  * @rmtoll CCCSR   RDY1   LL_SBS_IsActiveFlag_VddIOCMPCR
+  * @rmtoll CCCSR   RDY2   LL_SBS_IsActiveFlag_VddIOCMPCR
   * @retval State of bit (1 or 0).
   */
 __STATIC_INLINE uint32_t LL_SBS_IsActiveFlag_VddIOCMPCR(void)
@@ -1299,6 +1328,91 @@ __STATIC_INLINE uint32_t LL_SBS_GetVddIOCellCompensationCode(void)
 {
   return (uint32_t)(READ_BIT(SBS->CCCSR, SBS_CCCSR_CS2));
 }
+
+#if defined(SBS_OTGHSPHYTUNER2_COMPDISTUNE)
+/**
+  * @brief  Set the OTG high-speed PHY disconnect threshold adjustment.
+  * @rmtoll SBS_OTGHSPHYTUNER2   COMPDISTUNE   LL_SBS_SetOTGPHYDisconnectThresholdAdjustment
+  * @param  DisconnectThreshold This parameter can be one of the following values:
+  *         @arg @ref LL_SBS_OTGHSPHY_DISCONNECT_5_9PERCENT
+  *         @arg @ref LL_SBS_OTGHSPHY_DISCONNECT_0PERCENT
+  * @retval None
+  */
+__STATIC_INLINE void LL_SBS_SetOTGPHYDisconnectThresholdAdjustment(uint32_t DisconnectThreshold)
+{
+  MODIFY_REG(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_COMPDISTUNE, DisconnectThreshold);
+}
+
+/**
+  * @brief  Get the OTG high-speed PHY disconnect threshold adjustment.
+  * @rmtoll SBS_OTGHSPHYTUNER2   COMPDISTUNE   LL_SBS_GetOTGPHYDisconnectThresholdAdjustment
+  * @retval Returned value can be one of the following values:
+  *         @arg @ref LL_SBS_OTGHSPHY_DISCONNECT_5_9PERCENT
+  *         @arg @ref LL_SBS_OTGHSPHY_DISCONNECT_0PERCENT
+  */
+__STATIC_INLINE uint32_t LL_SBS_GetOTGPHYDisconnectThresholdAdjustment(void)
+{
+  return (uint32_t)(READ_BIT(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_COMPDISTUNE));
+}
+#endif /* SBS_OTGHSPHYTUNER2_COMPDISTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_SQRXTUNE)
+/**
+  * @brief  Set the voltage level for the threshold used to detect valid high-speed data.
+  * @rmtoll SBS_OTGHSPHYTUNER2   SQRXTUNE   LL_SBS_SetOTGPHYSquelchThresholdAdjustment
+  * @param  SquelchThreshold This parameter can be one of the following values:
+  *         @arg @ref LL_SBS_OTGHSPHY_SQUELCH_15PERCENT
+  *         @arg @ref LL_SBS_OTGHSPHY_SQUELCH_0PERCENT
+  * @retval None
+  */
+__STATIC_INLINE void LL_SBS_SetOTGPHYSquelchThresholdAdjustment(uint32_t SquelchThreshold)
+{
+  MODIFY_REG(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_SQRXTUNE, SquelchThreshold);
+}
+
+/**
+  * @brief  Get the voltage level for the threshold used to detect valid high-speed data.
+  * @rmtoll SBS_OTGHSPHYTUNER2   SQRXTUNE   LL_SBS_GetOTGPHYSquelchThresholdAdjustment
+  * @retval Returned value can be one of the following values:
+  *         @arg @ref LL_SBS_OTGHSPHY_SQUELCH_15PERCENT
+  *         @arg @ref LL_SBS_OTGHSPHY_SQUELCH_0PERCENT
+  */
+__STATIC_INLINE uint32_t LL_SBS_GetOTGPHYSquelchThresholdAdjustment(void)
+{
+  return (uint32_t)(READ_BIT(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_SQRXTUNE));
+}
+#endif /* SBS_OTGHSPHYTUNER2_SQRXTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE)
+/**
+  * @brief  Set the OTG high-speed PHY transmitter preemphasis current control.
+  * @rmtoll SBS_OTGHSPHYTUNER2   TXPREEMPAMPTUNE   LL_SBS_SetOTGPHYTransmitterPreemphasisCurrent
+  * @param  PreemphasisCurrent This parameter can be one of the following values:
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_DISABLED
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_1X
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_2X
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_3X
+  * @retval None
+  */
+__STATIC_INLINE void LL_SBS_SetOTGPHYTransmitterPreemphasisCurrent(uint32_t PreemphasisCurrent)
+{
+  MODIFY_REG(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE, PreemphasisCurrent);
+}
+
+/**
+  * @brief  Get the OTG high-speed PHY transmitter preemphasis current control.
+  * @rmtoll SBS_OTGHSPHYTUNER2   TXPREEMPAMPTUNE   LL_SBS_GetOTGPHYTransmitterPreemphasisCurrent
+  * @retval Returned value can be one of the following values:
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_DISABLED
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_1X
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_2X
+  *         @arg @ref LL_SBS_OTGHSPHY_PREEMP_3X
+  */
+__STATIC_INLINE uint32_t LL_SBS_GetOTGPHYTransmitterPreemphasisCurrent(void)
+{
+  return (uint32_t)(READ_BIT(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE));
+}
+#endif /* SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE */
 
 /**
   * @}
@@ -1445,14 +1559,16 @@ __STATIC_INLINE uint32_t LL_DBGMCU_GetTracePinAssignment(void)
   *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM6_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM7_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM12_STOP
-  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM13_STOP
-  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM14_STOP
+  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM13_STOP (*)
+  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM14_STOP (*)
   *         @arg @ref LL_DBGMCU_APB1_GRP1_WWDG_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_IWDG_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_I2C1_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_I2C2_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_I3C1_STOP
   * @retval None
+  * 
+  * (*) value not defined in all devices
   */
 __STATIC_INLINE void LL_DBGMCU_APB1_GRP1_FreezePeriph(uint32_t Periphs)
 {
@@ -1482,14 +1598,16 @@ __STATIC_INLINE void LL_DBGMCU_APB1_GRP2_FreezePeriph(uint32_t Periphs)
   *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM6_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM7_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM12_STOP
-  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM13_STOP
-  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM14_STOP
+  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM13_STOP (*)
+  *         @arg @ref LL_DBGMCU_APB1_GRP1_TIM14_STOP (*)
   *         @arg @ref LL_DBGMCU_APB1_GRP1_WWDG_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_IWDG_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_I2C1_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_I2C2_STOP
   *         @arg @ref LL_DBGMCU_APB1_GRP1_I3C1_STOP
   * @retval None
+  * 
+  * (*) value not defined in all devices
   */
 __STATIC_INLINE void LL_DBGMCU_APB1_GRP1_UnFreezePeriph(uint32_t Periphs)
 {
@@ -1515,9 +1633,11 @@ __STATIC_INLINE void LL_DBGMCU_APB1_GRP2_UnFreezePeriph(uint32_t Periphs)
   *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM1_STOP
   *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM8_STOP
   *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM15_STOP
-  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM16_STOP
-  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM17_STOP
+  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM16_STOP (*)
+  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM17_STOP (*)
   * @retval None
+  * 
+  * (*) value not defined in all devices
   */
 __STATIC_INLINE void LL_DBGMCU_APB2_GRP1_FreezePeriph(uint32_t Periphs)
 {
@@ -1531,9 +1651,11 @@ __STATIC_INLINE void LL_DBGMCU_APB2_GRP1_FreezePeriph(uint32_t Periphs)
   *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM1_STOP
   *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM8_STOP
   *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM15_STOP
-  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM16_STOP
-  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM17_STOP
+  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM16_STOP (*)
+  *         @arg @ref LL_DBGMCU_APB2_GRP1_TIM17_STOP (*)
   * @retval None
+  * 
+  * (*) value not defined in all devices
   */
 __STATIC_INLINE void LL_DBGMCU_APB2_GRP1_UnFreezePeriph(uint32_t Periphs)
 {
@@ -1545,10 +1667,12 @@ __STATIC_INLINE void LL_DBGMCU_APB2_GRP1_UnFreezePeriph(uint32_t Periphs)
   * @rmtoll DBGMCU_APB3FZ DBG_TIMx_STOP  LL_DBGMCU_APB3_GRP1_FreezePeriph
   * @param  Periphs This parameter can be a combination of the following values:
   *         @arg @ref LL_DBGMCU_APB3_GRP1_I2C3_STOP
-  *         @arg @ref LL_DBGMCU_APB3_GRP1_I2C4_STOP
+  *         @arg @ref LL_DBGMCU_APB3_GRP1_I2C4_STOP (*)
   *         @arg @ref LL_DBGMCU_APB3_GRP1_LPTIM1_STOP
   *         @arg @ref LL_DBGMCU_APB3_GRP1_RTC_STOP
   * @retval None
+  * 
+  * (*) value not defined in all devices
   */
 __STATIC_INLINE void LL_DBGMCU_APB3_GRP1_FreezePeriph(uint32_t Periphs)
 {
@@ -1560,10 +1684,12 @@ __STATIC_INLINE void LL_DBGMCU_APB3_GRP1_FreezePeriph(uint32_t Periphs)
   * @rmtoll DBGMCU_APB3FZR DBG_TIMx_STOP  LL_DBGMCU_APB3_GRP1_UnFreezePeriph
   * @param  Periphs This parameter can be a combination of the following values:
   *         @arg @ref LL_DBGMCU_APB3_GRP1_I2C3_STOP
-  *         @arg @ref LL_DBGMCU_APB3_GRP1_I2C4_STOP
+  *         @arg @ref LL_DBGMCU_APB3_GRP1_I2C4_STOP (*)
   *         @arg @ref LL_DBGMCU_APB3_GRP1_LPTIM1_STOP
   *         @arg @ref LL_DBGMCU_APB3_GRP1_RTC_STOP
   * @retval None
+  * 
+  * (*) value not defined in all devices
   */
 __STATIC_INLINE void LL_DBGMCU_APB3_GRP1_UnFreezePeriph(uint32_t Periphs)
 {
@@ -1816,5 +1942,5 @@ __STATIC_INLINE uint32_t LL_SBS_GetEraseAfterResetStatus(void)
 }
 #endif
 
-#endif /* STM32h5xx_LL_SYSTEM_H */
+#endif /* STM32H5xx_LL_SYSTEM_H */
 
